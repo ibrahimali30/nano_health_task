@@ -50,6 +50,22 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+
+    // Lifecycle viewmodel compose (for viewModel() in Compose)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+
+    // Image loading (Coil) for Compose
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // ExoPlayer for video playback and caching
+    implementation("com.google.android.exoplayer:exoplayer:2.18.6")
+    implementation("com.google.android.exoplayer:extension-okhttp:2.18.6")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    // Coroutines test for unit tests
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
