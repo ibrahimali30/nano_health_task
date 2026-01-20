@@ -7,10 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ibrahim.nano_health_task.feed.ui.FeedScreen
+import com.ibrahim.nano_health_task.feed.ui.FeedViewModel
 import com.ibrahim.nano_health_task.ui.theme.Nano_health_taskTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,28 +22,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             Nano_health_taskTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    val vm: FeedViewModel = viewModel()
+                    FeedScreen(viewModel = vm, modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     Nano_health_taskTheme {
-        Greeting("Android")
+        // preview: no viewmodel available here; show a stub
     }
 }
