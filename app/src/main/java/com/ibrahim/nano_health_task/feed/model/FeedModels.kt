@@ -9,9 +9,12 @@ sealed interface Media {
 
 data class ImageMedia(
     override val id: String,
-    @DrawableRes val resId: Int = 0,
     val url: String? = null
-) : Media
+) : Media {
+    val mediaUrl: String
+        get() = url?.replaceFirst("http:", "https:") ?: ""
+
+}
 
 data class VideoMedia(
     override val id: String,

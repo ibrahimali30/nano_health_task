@@ -1,5 +1,6 @@
 package com.ibrahim.nano_health_task.feed.ui
 
+import android.content.Context
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +27,9 @@ import com.ibrahim.nano_health_task.feed.model.VideoMedia
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.layout.ContentScale
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 
 
 @Composable
@@ -47,10 +50,9 @@ fun VideoPlayer(
     // create/release player based on playWhenReady
     DisposableEffect(playWhenReady, media.id, activePostId) {
         if (playWhenReady || play) {
-            val p = ExoPlayer.Builder(context).build()
-            val uri = media.url.toUri()
-            val mediaItem = MediaItem.fromUri(uri)
-            p.setMediaItem(mediaItem)
+            val player = buildExoPlayer(context)
+            val mediaItem = MediaItem.fromUri(media.url.toUri())
+            player.setMediaItem(mediaItem)
             val listener = object : Player.Listener {
                 override fun onIsLoadingChanged(isLoading: Boolean) {
                     isBuffering = isLoading
@@ -60,16 +62,16 @@ fun VideoPlayer(
                     isPlayingState = isPlaying
                 }
             }
-            p.addListener(listener)
-            p.prepare()
-            p.playWhenReady = true
-            p.play()
-            exoPlayer = p
+            player.addListener(listener)
+            player.prepare()
+            player.playWhenReady = true
+            player.play()
+            exoPlayer = player
 
             onDispose {
-                p.removeListener(listener)
-                p.stop()
-                p.release()
+                player.removeListener(listener)
+                player.stop()
+                player.release()
                 exoPlayer = null
                 isBuffering = false
             }
@@ -79,6 +81,7 @@ fun VideoPlayer(
                 p.pause(); p.stop(); p.release()
                 exoPlayer = null
                 isBuffering = false
+                isPlayingState = false
             }
             onDispose { /* nothing */ }
         }
@@ -129,8 +132,8 @@ fun VideoPlayer(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
-        val isPlaying = exoPlayer?.playWhenReady == true
-        if (isPlaying.not()) {
+        val isPlaying = exoPlayer?.playWhenReady == true && exoPlayer?.isPlaying == true
+        if (isPlayingState.not() || exoPlayer == null) {
             IconButton(
                 onClick = {
                     if (exoPlayer == null){
@@ -138,7 +141,6 @@ fun VideoPlayer(
                     }else{
                         exoPlayer?.play()
                     }
-
                 },
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -150,4 +152,21 @@ fun VideoPlayer(
 
         }
     }
+}
+
+
+fun buildExoPlayer(context: Context) = run {
+    // Create the DataSource Factory with Cache support
+    val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+    val cacheDataSourceFactory = CacheDataSource.Factory()
+        .setCache(VideoCache.getInstance(context))
+        .setUpstreamDataSourceFactory(httpDataSourceFactory)
+        .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+
+    ExoPlayer.Builder(context)
+        .setMediaSourceFactory(DefaultMediaSourceFactory(cacheDataSourceFactory))
+        .build()
+        .apply {
+            repeatMode = Player.REPEAT_MODE_ONE
+        }
 }

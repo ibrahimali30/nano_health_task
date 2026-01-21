@@ -60,6 +60,7 @@ class FeedViewModel @Inject constructor(
 
     fun loadNextPage() {
         if (_isLoadingMore.value) return
+        stopPlayer()
         viewModelScope.launch {
             _isLoadingMore.value = true
             currentPage += 1
@@ -69,5 +70,9 @@ class FeedViewModel @Inject constructor(
             }
             _isLoadingMore.value = false
         }
+    }
+
+    private fun stopPlayer() {
+        setActivePost(null)
     }
 }

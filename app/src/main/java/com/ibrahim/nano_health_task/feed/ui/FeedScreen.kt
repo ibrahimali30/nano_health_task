@@ -91,8 +91,6 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
-
-        Text(modifier = Modifier.padding(top = 100.dp) ,text = activePostId.toString())
     }
 }
 
@@ -112,7 +110,7 @@ private fun PostItem(post: Post, play: Boolean) {
                 when (m) {
                     is ImageMedia -> {
                         AsyncImage(
-                            model = m.resId,
+                            model = m.mediaUrl,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
