@@ -1,7 +1,7 @@
 package com.ibrahim.nano_health_task
 
 import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 
-
-class App : Application() {
-}
+@HiltAndroidApp
+class App : Application()

@@ -10,11 +10,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import com.ibrahim.nano_health_task.feed.ui.FeedScreen
 import com.ibrahim.nano_health_task.feed.ui.FeedViewModel
 import com.ibrahim.nano_health_task.ui.theme.Nano_health_taskTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             Nano_health_taskTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val vm: FeedViewModel = viewModel()
+                    val vm: FeedViewModel = hiltViewModel()
                     FeedScreen(viewModel = vm, modifier = Modifier.padding(innerPadding))
                 }
             }

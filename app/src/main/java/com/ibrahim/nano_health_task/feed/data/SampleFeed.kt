@@ -18,7 +18,7 @@ object SampleFeed {
             id = "p2",
             author = "bob",
             caption = "Short clip",
-            media = listOf(VideoMedia("m2", R.raw.sample_video_2))
+            media = listOf(VideoMedia("m2"))
         ),
         Post(
             id = "p3",
@@ -26,7 +26,7 @@ object SampleFeed {
             caption = "Image + video",
             media = listOf(
                 ImageMedia("m3", R.drawable.ic_launcher_foreground),
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m4")
             )
         ),
         Post(
@@ -34,7 +34,7 @@ object SampleFeed {
             author = "carol",
             caption = "Video",
             media = listOf(
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m5")
             )
         ),
         Post(
@@ -42,7 +42,7 @@ object SampleFeed {
             author = "carol",
             caption = "Video",
             media = listOf(
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m6")
             )
         ),
         Post(
@@ -50,7 +50,7 @@ object SampleFeed {
             author = "carol",
             caption = "Video",
             media = listOf(
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m7")
             )
         ),
         Post(
@@ -58,7 +58,7 @@ object SampleFeed {
             author = "carol",
             caption = "Video",
             media = listOf(
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m8")
             )
         ),
         Post(
@@ -66,7 +66,7 @@ object SampleFeed {
             author = "carol",
             caption = "Video",
             media = listOf(
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m9")
             )
         ),
         Post(
@@ -74,7 +74,7 @@ object SampleFeed {
             author = "carol",
             caption = "Video",
             media = listOf(
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m10")
             )
         ),
         Post(
@@ -82,7 +82,7 @@ object SampleFeed {
             author = "carol",
             caption = "Video",
             media = listOf(
-                VideoMedia("m4", R.raw.sample_video_2)
+                VideoMedia("m11")
             )
         )
     )

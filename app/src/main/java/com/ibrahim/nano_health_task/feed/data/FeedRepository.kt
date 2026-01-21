@@ -4,8 +4,9 @@ import com.ibrahim.nano_health_task.feed.model.Post
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class FeedRepository {
+class FeedRepository @Inject constructor() {
     private val all = SampleFeed.posts
 
     // Simulate network/pagination: return next page based on page index

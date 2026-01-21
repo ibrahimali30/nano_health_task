@@ -5,15 +5,18 @@ import androidx.lifecycle.viewModelScope
 import com.ibrahim.nano_health_task.feed.data.FeedRepository
 import com.ibrahim.nano_health_task.feed.model.Post
 import com.ibrahim.nano_health_task.feed.model.VideoMedia
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class FeedViewModel(
-    private val repository: FeedRepository = FeedRepository()
+@HiltViewModel
+class FeedViewModel @Inject constructor(
+    private val repository: FeedRepository
 ) : ViewModel() {
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts: StateFlow<List<Post>> = _posts.asStateFlow()
