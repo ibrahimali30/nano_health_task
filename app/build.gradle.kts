@@ -71,6 +71,9 @@ dependencies {
     // Coroutines test for unit tests
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 
+    // Mocking for Kotlin
+    testImplementation("io.mockk:mockk:1.13.5")
+
     // Accompanist swipe refresh for pull-to-refresh
     implementation("com.google.accompanist:accompanist-swiperefresh:0.30.1")
 
