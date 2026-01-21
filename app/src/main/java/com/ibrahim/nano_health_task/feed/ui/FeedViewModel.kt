@@ -34,10 +34,6 @@ class FeedViewModel @Inject constructor(
     private var currentPage = 0
 
     init {
-        repository.getFeed()
-            .onEach { _posts.value = it }
-            .launchIn(viewModelScope)
-
         // initial load
         viewModelScope.launch {
             val first = repository.loadPage(currentPage)

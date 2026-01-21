@@ -9,12 +9,14 @@ sealed interface Media {
 
 data class ImageMedia(
     override val id: String,
-    @DrawableRes val resId: Int
+    @DrawableRes val resId: Int = 0,
+    val url: String? = null
 ) : Media
 
 data class VideoMedia(
     override val id: String,
-    val url: String = videos.random().url
+    val url: String,
+    val thumb: String
 ) : Media
 
 data class Post(

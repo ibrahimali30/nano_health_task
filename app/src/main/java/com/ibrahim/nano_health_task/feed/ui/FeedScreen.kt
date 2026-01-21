@@ -29,9 +29,6 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
 
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-
-    val bufferingMap = remember { mutableStateMapOf<String, Boolean>() }
 
     // Pause playback while scrolling to avoid heavy operations during flings;
     // after scrolling stops, pick the center-most item and start playback with a small debounce.
@@ -81,7 +78,6 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
                         PostItem(
                             post = post,
                             play = post.id == activePostId,
-                            setBuffering = { bufferingMap[post.id] = it }
                         )
                     }
 
@@ -101,7 +97,7 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PostItem(post: Post, play: Boolean, setBuffering: (Boolean) -> Unit) {
+private fun PostItem(post: Post, play: Boolean) {
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(8.dp)) {
@@ -128,7 +124,6 @@ private fun PostItem(post: Post, play: Boolean, setBuffering: (Boolean) -> Unit)
                             VideoPlayer(
                                 media = m,
                                 playWhenReady = play,
-                                showBuffering = setBuffering
                             )
                         }
                     }

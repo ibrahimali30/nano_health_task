@@ -32,7 +32,6 @@ fun VideoPlayer(
     media: VideoMedia,
     playWhenReady: Boolean,
     viewModel: FeedViewModel = viewModel(),
-    showBuffering: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -52,7 +51,6 @@ fun VideoPlayer(
             val listener = object : Player.Listener {
                 override fun onIsLoadingChanged(isLoading: Boolean) {
                     isBuffering = isLoading
-                    showBuffering(isLoading)
                 }
 
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -116,8 +114,11 @@ fun VideoPlayer(
         if (isPlaying.not()) {
             IconButton(
                 onClick = {
-                    viewModel.onPlayVideoClicked(videoUrl = media)
-                    exoPlayer?.play()
+                    if (exoPlayer == null){
+                        viewModel.onPlayVideoClicked(videoUrl = media)
+                    }else{
+                        exoPlayer?.play()
+                    }
 
                 },
                 modifier = Modifier
