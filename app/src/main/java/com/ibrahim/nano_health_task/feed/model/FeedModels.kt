@@ -16,7 +16,7 @@ data class ImageMedia(
 data class VideoMedia(
     override val id: String,
     val url: String,
-    val thumb: String
+    val thumbnailUrl: String? = null
 ) : Media
 
 data class Post(

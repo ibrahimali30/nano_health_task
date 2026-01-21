@@ -18,10 +18,11 @@ class RemoteFeedsRepository @Inject constructor(
             return@withContext posts.mapIndexed { pi, netPost ->
                 val media = netPost.media.mapIndexed { idx, m ->
                     val id = m.id ?: "m-${netPost.id}-$idx"
+                    val thumb = m.thumb
                     when (m.mediaType?.lowercase()) {
-                        "image" -> ImageMedia(id = id, url = m.url)
-                        "video" -> VideoMedia(id = id, url = m.url ?: "", thumb = m.thumb ?: "")
-                        else -> ImageMedia(id = id, url = m.url)
+                        "image" -> ImageMedia(id = id, url = m.url ?: thumb)
+                        "video" -> VideoMedia(id = id, url = m.url ?: "", thumbnailUrl = thumb?.replaceFirst("http://","https://"))
+                        else -> ImageMedia(id = id, url = m.url ?: thumb)
                     }
                 }
                 Post(

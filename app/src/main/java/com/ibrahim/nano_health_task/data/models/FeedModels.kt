@@ -15,6 +15,5 @@ data class MediaItem(
     val id: String?,
     val mediaType: String?, // "image" | "video"
     val url: String?,
-    val resName: String?,
-    val thumb: String?
+    val thumb: String?,           // thumbnail url (videos often include "thumb")
 )
