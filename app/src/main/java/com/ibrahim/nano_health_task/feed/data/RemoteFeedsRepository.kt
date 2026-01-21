@@ -14,14 +14,38 @@ class RemoteFeedsRepository @Inject constructor(
     suspend fun fetchAll(): List<Post> = withContext(Dispatchers.IO) {
         try {
             val resp = api.getHomeFeeds()
-            val posts = resp.posts
-            return@withContext posts.mapIndexed { pi, netPost ->
+            resp.posts.mapIndexed { pi, netPost ->
                 val media = netPost.media.mapIndexed { idx, m ->
                     val id = m.id ?: "m-${netPost.id}-$idx"
                     val thumb = m.thumb
                     when (m.mediaType?.lowercase()) {
                         "image" -> ImageMedia(id = id, url = m.url ?: thumb)
-                        "video" -> VideoMedia(id = id, url = m.url ?: "", thumbnailUrl = thumb?.replaceFirst("http://","https://"))
+                        "video" -> VideoMedia(id = id, url = m.url ?: "", thumbnailUrl = thumb)
+                        else -> ImageMedia(id = id, url = m.url ?: thumb)
+                    }
+                }
+                Post(
+                    id = netPost.id,
+                    author = netPost.author ?: "",
+                    caption = netPost.caption ?: "",
+                    media = media
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun fetchAllPage(page: Int): List<Post> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.getHomeFeeds(page)
+            resp.posts.mapIndexed { pi, netPost ->
+                val media = netPost.media.mapIndexed { idx, m ->
+                    val id = m.id ?: "m-${netPost.id}-$idx"
+                    val thumb = m.thumb
+                    when (m.mediaType?.lowercase()) {
+                        "image" -> ImageMedia(id = id, url = m.url ?: thumb)
+                        "video" -> VideoMedia(id = id, url = m.url ?: "", thumbnailUrl = thumb)
                         else -> ImageMedia(id = id, url = m.url ?: thumb)
                     }
                 }

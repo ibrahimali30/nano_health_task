@@ -24,6 +24,9 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerView
 import com.ibrahim.nano_health_task.feed.model.VideoMedia
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.layout.ContentScale
 
 
 @Composable
@@ -102,8 +105,24 @@ fun VideoPlayer(
                 }
             )
         } else {
-            // Show placeholder box while not playing
-            Box(modifier = Modifier.fillMaxSize())
+            // Show placeholder image while not playing (use media.thumbnailUrl or media.url)
+            val thumbUrl = media.placeHolder
+            if (thumbUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(thumbUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            } else {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)))
+            }
         }
 
         if (isBuffering && !isPlayingState) {

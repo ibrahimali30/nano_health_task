@@ -17,7 +17,10 @@ data class VideoMedia(
     override val id: String,
     val url: String,
     val thumbnailUrl: String? = null
-) : Media
+) : Media{
+    val placeHolder: String
+        get() = thumbnailUrl?.replaceFirst("http:", "https:") ?: ""
+}
 
 data class Post(
     val id: String,
