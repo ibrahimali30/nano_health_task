@@ -5,56 +5,103 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.ibrahim.nano_health_task.feed.model.ImageMedia
 import com.ibrahim.nano_health_task.feed.model.Post
 import com.ibrahim.nano_health_task.feed.model.VideoMedia
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @Composable
 fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
     val posts by viewModel.posts.collectAsState()
     val activePostId by viewModel.activePostId.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
 
     val listState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
-    // Observe visible items and decide which post should be active for autoplay
-    LaunchedEffect(listState, Unit) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .collectLatest { visibleInfo ->
-                if (visibleInfo.isNotEmpty()) {
-                    val selected = visibleInfo.maxByOrNull { it.size * it.visibleFraction() }
-                    selected?.let { info ->
-                        val index = info.index
-                        val post = posts.getOrNull(index)
-                        viewModel.setActivePost(post?.id)
+    val bufferingMap = remember { mutableStateMapOf<String, Boolean>() }
+
+    // Pause playback while scrolling to avoid heavy operations during flings;
+    // after scrolling stops, pick the center-most item and start playback with a small debounce.
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .collectLatest { scrolling ->
+                if (scrolling) {
+                    // Pause playback while the user is actively scrolling
+                    if (viewModel.activePostId.value != null) {
+//                        viewModel.setActivePost(null)
                     }
                 } else {
-                    viewModel.setActivePost(null)
+                    // Wait briefly for scroll/fling to settle
+                    delay(300)
+                    // determine the most visible item and activate it IF it is sufficiently visible
+                    val visibleInfo = listState.layoutInfo.visibleItemsInfo
+                    if (visibleInfo.isNotEmpty()) {
+                        // pick item with largest visible fraction
+                        val selected = visibleInfo.maxByOrNull { it.visibleFraction() }
+                        selected?.let { info ->
+                            val frac = info.visibleFraction()
+                            // require a dominant visibility (e.g., >60%) to autoplay
+                            if (frac >= 0.6f) {
+                                val index = info.index
+                                val post = posts.getOrNull(index)
+                                viewModel.setActivePost(post?.id)
+
+                                // pagination trigger: if near end, load next (earlier threshold)
+                                if (index >= posts.size - 3) {
+                                    viewModel.loadNextPage()
+                                }
+                            } else {
+                                // No dominant item; keep playback paused
+                                viewModel.setActivePost(null)
+                            }
+                        }
+                    }
                 }
             }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            items(posts, key = { it.id }) { post ->
-                PostItem(
-                    post = post,
-                    play = post.id == activePostId
-                )
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+        SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing), onRefresh = { viewModel.refresh() }) {
+            Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(innerPadding)) {
+                LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                    items(posts, key = { it.id }) { post ->
+                        PostItem(
+                            post = post,
+                            play = post.id == activePostId,
+                            setBuffering = { bufferingMap[post.id] = it }
+                        )
+                    }
+
+                    if (isLoadingMore) {
+                        item {
+                            Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        Text(modifier = Modifier.padding(top = 100.dp) ,text = activePostId.toString())
     }
 }
 
 @Composable
-private fun PostItem(post: Post, play: Boolean) {
+private fun PostItem(post: Post, play: Boolean, setBuffering: (Boolean) -> Unit) {
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(8.dp)) {
@@ -77,14 +124,13 @@ private fun PostItem(post: Post, play: Boolean) {
                         )
                     }
                     is VideoMedia -> {
-                        // play only if 'play' is true
-                        VideoPlayer(
-                            videoResId = m.resId,
-                            playWhenReady = play,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp)
-                        )
+                        Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+                            VideoPlayer(
+                                media = m,
+                                playWhenReady = play,
+                                showBuffering = setBuffering
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))

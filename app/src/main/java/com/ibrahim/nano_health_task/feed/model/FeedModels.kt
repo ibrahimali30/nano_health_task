@@ -1,7 +1,7 @@
 package com.ibrahim.nano_health_task.feed.model
 
 import androidx.annotation.DrawableRes
-import androidx.annotation.RawRes
+import com.ibrahim.nano_health_task.feed.ui.videos
 
 sealed interface Media {
     val id: String
@@ -14,7 +14,7 @@ data class ImageMedia(
 
 data class VideoMedia(
     override val id: String,
-    @RawRes val resId: Int
+    val url: String = videos.random().url
 ) : Media
 
 data class Post(
