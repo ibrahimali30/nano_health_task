@@ -47,7 +47,9 @@ fun VideoPlayer(
     val activePostId by viewModel.activePostId.collectAsState()
 
     val play = media.id == activePostId
-    // create/release player based on playWhenReady
+
+    var playerViewRef by remember { mutableStateOf<PlayerView?>(null) }
+
     DisposableEffect(playWhenReady, media.id, activePostId) {
         if (playWhenReady || play) {
             val player = buildExoPlayer(context)
@@ -74,9 +76,9 @@ fun VideoPlayer(
                 player.release()
                 exoPlayer = null
                 isBuffering = false
+                playerViewRef = null
             }
         } else {
-            // ensure any existing player is released when not playing
             exoPlayer?.let { p ->
                 p.pause(); p.stop(); p.release()
                 exoPlayer = null
@@ -93,18 +95,33 @@ fun VideoPlayer(
             AndroidView(
                 modifier = Modifier
                     .clickable {
-                        if (exoPlayer?.isPlaying == false) exoPlayer?.play() else exoPlayer?.pause()
+                        // toggle the controller visibility when the video area is clicked
+                        playerViewRef?.let { pv ->
+                            try {
+                                if (pv.isControllerVisible) pv.hideController() else pv.showController()
+                            } catch (_: Throwable) {
+                                // ignore any reflection/version differences
+                            }
+                        }
                     }
                     .fillMaxSize(),
                 factory = { ctx ->
                     PlayerView(ctx).apply {
-                        useController = false
+                        useController = true
+                        // short timeout for auto-hide
+                        try { setControllerShowTimeoutMs(3000) } catch (_: Throwable) {}
                         player = currentPlayer
                         layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT
                         )
+                        try { hideController() } catch (_: Throwable) {}
+                        playerViewRef = this
                     }
+                },
+                update = { pv ->
+                    if (pv.player !== currentPlayer) pv.player = currentPlayer
+                    playerViewRef = pv
                 }
             )
         } else {
@@ -132,7 +149,6 @@ fun VideoPlayer(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
-        val isPlaying = exoPlayer?.playWhenReady == true && exoPlayer?.isPlaying == true
         if (isPlayingState.not() || exoPlayer == null) {
             IconButton(
                 onClick = {
