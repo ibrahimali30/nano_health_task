@@ -79,19 +79,4 @@ class FeedRepository @Inject constructor(
         val all = loadPage(0)
         return all
     }
-
-    fun getFeed(): Flow<List<Post>> = flow {
-        val cached = dao.getAll()
-        emit(cached.map { entity ->
-            Post(
-                id = entity.id,
-                author = entity.author,
-                caption = entity.caption,
-                media = entity.media.map { me ->
-                    if (me.type == "video") VideoMedia(id = me.id, url = me.url ?: "", thumbnailUrl = me.thumbnailUrl)
-                    else ImageMedia(id = me.id, url = me.url)
-                }
-            )
-        })
-    }
 }

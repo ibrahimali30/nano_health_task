@@ -1,24 +1,35 @@
 package com.ibrahim.nano_health_task.feed.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Comment
+import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.ibrahim.nano_health_task.feed.model.ImageMedia
 import com.ibrahim.nano_health_task.feed.model.Post
 import com.ibrahim.nano_health_task.feed.model.VideoMedia
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 
 @Composable
 fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
@@ -29,6 +40,9 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
 
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val bufferingMap = remember { mutableStateMapOf<String, Boolean>() }
 
     // Pause playback while scrolling to avoid heavy operations during flings;
     // after scrolling stops, pick the center-most item and start playback with a small debounce.
@@ -78,6 +92,8 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
                         PostItem(
                             post = post,
                             play = post.id == activePostId,
+                            setBuffering = { bufferingMap[post.id] = it },
+                            viewModel = viewModel
                         )
                     }
 
@@ -95,38 +111,170 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PostItem(post: Post, play: Boolean) {
+private fun PostItem(post: Post, play: Boolean, setBuffering: (Boolean) -> Unit, viewModel: FeedViewModel) {
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(8.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "@${post.author}", modifier = Modifier.padding(8.dp))
+            Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                val avatarUrl = remember(post.id) {"https://budgetstockphoto.com/samples/pics/swan.jpg" }
+
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "Profile",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(text = "@${post.author}")
+
+            }
+
             Text(text = post.caption, modifier = Modifier.padding(horizontal = 8.dp))
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Render media - show first image/video, then rest below
-            for (m in post.media) {
-                when (m) {
-                    is ImageMedia -> {
-                        AsyncImage(
-                            model = m.mediaUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(240.dp)
-                        )
-                    }
-                    is VideoMedia -> {
-                        Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
-                            VideoPlayer(
-                                media = m,
-                                playWhenReady = play,
+            // Render media: if only one item show it full-width, otherwise show a 2-column grid (up to 4 items visible)
+            val mediaCount = post.media.size
+
+            if (mediaCount <= 1) {
+                // single media: existing behavior
+                post.media.firstOrNull()?.let { mediaItem ->
+                    when (mediaItem) {
+                        is ImageMedia -> {
+                            AsyncImage(
+                                model = mediaItem.mediaUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                contentScale = ContentScale.Crop
                             )
+                        }
+                        is VideoMedia -> {
+                            Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+                                VideoPlayer(
+                                    media = mediaItem,
+                                    playWhenReady = play,
+                                )
+                            }
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+            } else {
+                // Grid: show up to 4 items in a 2x2 grid. On last item show +N overlay for remaining items.
+                val visible = post.media.take(4)
+                val rows = (visible.size + 1) / 2
+                Column {
+                    for (r in 0 until rows) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            val leftIndex = r * 2
+                            val rightIndex = leftIndex + 1
+
+                            val left = visible.getOrNull(leftIndex)
+                            val right = visible.getOrNull(rightIndex)
+
+                            // Left cell
+                            MediaGridCell(
+                                media = left,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(180.dp)
+                                    .clickable(enabled = left != null) {
+                                    },
+                                overlayText = if (leftIndex == 3 && mediaCount > 4) "+${mediaCount - 4}" else null
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            // Right cell
+                            MediaGridCell(
+                                media = right,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(180.dp)
+                                    .clickable(enabled = right != null) {},
+                                overlayText = if (rightIndex == 3 && mediaCount > 4) "+${mediaCount - 4}" else null
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Bottom action bar: like, comment, share
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = {}
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Favorite,
+                        contentDescription = "Like",
+                    )
+                }
+
+                Text(text = "73", modifier = Modifier.padding(end = 16.dp))
+
+                IconButton(onClick = { }) {
+                    Icon(imageVector = Icons.Filled.Comment, contentDescription = "Comment")
+                }
+
+                IconButton(onClick = { /* share intent */ }) {
+                    Icon(imageVector = Icons.Filled.Share, contentDescription = "Share")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MediaGridCell(media: com.ibrahim.nano_health_task.feed.model.Media?, modifier: Modifier = Modifier, onClick: (Int) -> Unit = {}, overlayText: String?) {
+    Box(modifier = modifier) {
+        if (media == null) {
+            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)))
+            return@Box
+        }
+
+        when (media) {
+            is ImageMedia -> {
+                AsyncImage(
+                    model = media.mediaUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            is VideoMedia -> {
+                val thumb = media.placeHolder
+                if (thumb.isNotEmpty()) {
+                    AsyncImage(
+                        model = thumb,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)))
+                }
+
+                IconButton(onClick = { /* play handled by viewer */ }, modifier = Modifier.background(Color.Black).align(Alignment.Center)) {
+                    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = "Play", tint = Color.White)
+                }
+            }
+        }
+
+        if (!overlayText.isNullOrBlank()) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.35f)), contentAlignment = Alignment.Center) {
+                Text(text = overlayText, color = Color.White)
             }
         }
     }

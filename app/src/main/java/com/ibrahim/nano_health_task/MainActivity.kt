@@ -20,7 +20,7 @@ import com.ibrahim.nano_health_task.ui.theme.Nano_health_taskTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
         setContent {
             Nano_health_taskTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -36,6 +36,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     Nano_health_taskTheme {
-        // preview: no viewmodel available here; show a stub
+
     }
 }
