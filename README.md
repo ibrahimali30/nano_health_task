@@ -11,6 +11,16 @@ This README includes architecture, folder structure, key libraries, assumptions,
 
 ---
 
+
+## Demo video
+
+A short demo screen recording is available in the repository. You can view or download it here:
+
+- GitHub (blob page): https://github.com/ibrahimali30/nano_health_task/blob/main/app/screenShots/Screen%20Recording%202026-01-21%20at%202.44.49%E2%80%AFPM.mov
+- Raw/download link: https://raw.githubusercontent.com/ibrahimali30/nano_health_task/main/app/screenShots/Screen%20Recording%202026-01-21%20at%202.44.49%E2%80%AFPM.mov
+
+---
+
 ## Architecture
 
 - MVVM (ViewModel -> Repository -> Data sources)
@@ -99,15 +109,6 @@ Add these screenshots to the README pages (hosted in the repo):
 - ![Screenshot3](app/screenShots/Screenshot%202026-01-21%20at%202.48.46%E2%80%AFPM.png)
 
 (These images are included in the repository under `app/screenShots/` — the README references them relative to the repo root so they render on GitHub.)
-
----
-
-## Demo video
-
-A short demo screen recording is available in the repository. You can view or download it here:
-
-- GitHub (blob page): https://github.com/ibrahimali30/nano_health_task/blob/main/app/screenShots/Screen%20Recording%202026-01-21%20at%202.44.49%E2%80%AFPM.mov
-- Raw/download link: https://raw.githubusercontent.com/ibrahimali30/nano_health_task/main/app/screenShots/Screen%20Recording%202026-01-21%20at%202.44.49%E2%80%AFPM.mov
 
 ---
 
