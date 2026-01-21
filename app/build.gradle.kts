@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -27,6 +28,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -61,10 +63,17 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer:2.18.6")
     implementation("com.google.android.exoplayer:extension-okhttp:2.18.6")
 
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     // Coroutines test for unit tests
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // Accompanist swipe refresh for pull-to-refresh
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.30.1")
+
+    // Material icons (extended) for play/pause icons
+    implementation("androidx.compose.material:material-icons-extended:1.5.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -73,4 +82,11 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    ksp(libs.hilt.compiler)
+    kspTest(libs.hilt.compiler)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    ksp(libs.hilt.ext.compiler)
+
 }
